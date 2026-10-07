@@ -27,3 +27,4 @@
 ## 现有笔记
 
 - [芯片间互联技术概览](chip-interconnect/chip-interconnect-overview.md) — 3D 堆叠、2.5D/Chiplet、铜 SerDes、无线耦合、晶圆级集成与光互连的优缺点对比；结论：封装内用 2.5D/3D，机柜内用铜，机柜间及更远用光。
+- [Linux 内核的构成（入门版）](linux-kernel/linux-kernel-architecture.md) — 用户态/内核态与系统调用、五大子系统、宏内核与可加载模块、源码目录、学习路线。
