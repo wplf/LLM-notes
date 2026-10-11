@@ -4,7 +4,7 @@ site_url: https://wplf.github.io/LLM-notes/
 repo_url: https://github.com/wplf/LLM-notes
 repo_name: wplf/LLM-notes
 edit_uri: edit/main/
-# 笔记保留在仓库根目录的各主题文件夹中，CI 构建时会复制到 _docs/
+# 笔记保留在仓库根目录的各主题文件夹中，CI 构建时会复制到 _docs/，并生成 mkdocs.gen.yml（含中文导航）
 docs_dir: _docs
 
 theme:

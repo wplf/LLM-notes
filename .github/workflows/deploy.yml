@@ -24,8 +24,8 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install mkdocs-material
-      - run: ./scripts/prepare_docs.sh
-      - run: mkdocs build --strict
+      - run: python scripts/prepare_docs.py
+      - run: mkdocs build --strict -f mkdocs.gen.yml
       - uses: actions/upload-pages-artifact@v3
         if: github.event_name != 'pull_request'
         with:
