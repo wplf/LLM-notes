@@ -3,7 +3,9 @@
 
 侧边栏顺序、分组、以及「标题 -> 文件」的映射全部来自 README：
 - 二级标题（###）作为分组名，只取 " / " 前的中文部分；
-- 列表项 `- [标题](路径.md)` 作为该分组下的导航项，显示标题即列表项标题。
+- 列表项 `- [标题](路径.md)` 作为该分组下的导航项，显示标题即列表项标题；
+- 不带链接的顶层列表项 `- 名称` 开启一个子目录，其下缩进的列表项归入该子目录，
+  遇到下一个不缩进的列表项或新的分组时子目录结束。
 README 里未登记的笔记会归入「其他」，不会从网站上漏掉。
 """
 import json
@@ -25,18 +27,28 @@ for d in root.iterdir():
         shutil.copytree(d, docs / d.name)
 
 nav = [{"首页": "index.md"}]
-section = None
+section = None   # 当前分组的条目列表
+sub = None       # 当前子目录的条目列表
 listed = set()
 for line in readme.splitlines():
     m = re.match(r"###\s+(.+)", line)
     if m:
-        section = {m.group(1).split(" / ")[0].strip(): []}
-        nav.append(section)
+        section, sub = [], None
+        nav.append({m.group(1).split(" / ")[0].strip(): section})
         continue
-    m = re.match(r"\s*-\s*\[(.+?)\]\((.+?\.md)\)", line)
-    if m and section is not None:
-        list(section.values())[0].append({m.group(1): m.group(2)})
-        listed.add(m.group(2))
+    if section is None:
+        continue
+    m = re.match(r"(\s*)-\s*\[(.+?)\]\((.+?\.md)\)", line)
+    if m:
+        if not m.group(1):
+            sub = None
+        (section if sub is None else sub).append({m.group(2): m.group(3)})
+        listed.add(m.group(3))
+        continue
+    m = re.match(r"-\s+(\S.*)", line)
+    if m:
+        sub = []
+        section.append({m.group(1).strip(): sub})
 
 others = [str(p.relative_to(docs)) for p in sorted(docs.rglob("*.md"))
           if p.name != "index.md" and str(p.relative_to(docs)) not in listed]
