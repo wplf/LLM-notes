@@ -297,7 +297,7 @@ def metrics(daily_ret, rf=0.0):
 6. **进阶**：机器学习选股、组合优化、执行算法、高频微观结构。
 
 推荐阅读：
-- 《打开量化投资的黑箱》（Rishi Narang）——入门概念全景
+- [《打开量化投资的黑箱》](../inside-the-black-box/index.md)（Rishi Narang）——入门概念全景（本站有逐章笔记）
 - 《Quantitative Trading》/《Algorithmic Trading》（Ernest Chan）——实操型
 - 《Advances in Financial Machine Learning》（Marcos López de Prado）——回测陷阱与 ML 方法
 - 《主动投资组合管理》（Grinold & Kahn）——Alpha、IC、IR 的理论基础
