@@ -49,3 +49,6 @@ For recording useful knowledge about LLMs and computers.
     - [第 15 章 高频交易](inside-the-black-box/ch15-high-frequency-trading.md)
     - [第 16 章 关于高频交易的争论](inside-the-black-box/ch16-hft-controversy.md)
     - [第 17 章 量化交易的展望](inside-the-black-box/ch17-future.md)
+
+### 分布式训练 / Distributed Training
+- [分层分片数据并行（HSDP）的设计原理](hsdp/hsdp-design-principles.md) — 相对 FSDP2 省掉哪些拷贝、三级 ZeRO 分片、两段梯度归约、对称内存通信、梯度直写，以及显存统计、空分组脏数据、FP64 热路径等坑
