@@ -24,6 +24,24 @@ For recording useful knowledge about LLMs and computers.
     - [第 14 讲 片外电源分配](ee273-digital-systems-engineering/lec14-off-chip-power.md)
     - [第 15 讲 片上电源分配](ee273-digital-systems-engineering/lec15-on-chip-power.md)
     - [第 16 讲 总结与课程项目讲评](ee273-digital-systems-engineering/lec16-wrap-up.md)
+- ECEN 720 高速链路电路与系统（Texas A&M 课程笔记）
+- [课程总览与讲次目录](ecen720-high-speed-links/index.md) — Palermo 2025 年春季学期 16 讲讲义的中文笔记：信道、调制、均衡、收发电路、时钟、Chiplet 互联与光收发器
+    - [第 1 讲 课程介绍](ecen720-high-speed-links/lec01-introduction.md)
+    - [第 2 讲 信道元件、导线与传输线](ecen720-high-speed-links/lec02-channels.md)
+    - [第 3 讲 时域反射与 S 参数信道模型](ecen720-high-speed-links/lec03-tdr-sparameters.md)
+    - [第 4 讲 信道脉冲模型与调制方式](ecen720-high-speed-links/lec04-pulse-model-modulation.md)
+    - [第 5 讲 端接、发送驱动器与复用器电路](ecen720-high-speed-links/lec05-termination-tx-driver.md)
+    - [第 6 讲 接收电路](ecen720-high-speed-links/lec06-rx-circuits.md)
+    - [第 7 讲 均衡概述与发送端 FIR 均衡](ecen720-high-speed-links/lec07-equalization-tx-fir.md)
+    - [第 8 讲 接收端 FIR、CTLE、DFE 与自适应均衡](ecen720-high-speed-links/lec08-rx-equalization.md)
+    - [第 9 讲 噪声源](ecen720-high-speed-links/lec09-noise-sources.md)
+    - [第 10 讲 抖动](ecen720-high-speed-links/lec10-jitter.md)
+    - [第 11 讲 时钟架构与 PLL](ecen720-high-speed-links/lec11-clocking-plls.md)
+    - [第 12 讲 时钟数据恢复（CDR）](ecen720-high-speed-links/lec12-cdrs.md)
+    - [第 13 讲 前向时钟去偏斜电路](ecen720-high-speed-links/lec13-forwarded-clock-deskew.md)
+    - [第 14 讲 时钟分配技术](ecen720-high-speed-links/lec14-clock-distribution.md)
+    - [第 15 讲 裸片间（Die-to-Die）收发器](ecen720-high-speed-links/lec15-die-to-die.md)
+    - [第 16 讲 光收发器](ecen720-high-speed-links/lec16-optical-transceivers.md)
 
 ### 操作系统 / Operating System
 - [Linux 内核的构成（入门版）](linux-kernel/linux-kernel-architecture.md) — 用户态与内核态、系统调用、五大子系统（调度/内存/VFS/网络/驱动）、宏内核与模块、源码目录与学习路线
