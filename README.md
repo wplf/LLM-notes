@@ -58,6 +58,29 @@ For recording useful knowledge about LLMs and computers.
     - [第 12 讲 激光源](ecen689-optical-interconnects/lec12-laser-sources.md)
     - [第 13 讲 基于监测的微波光子自动调谐系统](ecen689-optical-interconnects/lec13-microwave-photonics.md)
     - [第 14 讲 带线性化的模拟 MZM 驱动器](ecen689-optical-interconnects/lec14-linear-mzm-driver.md)
+- MIT 6.776 高速通信电路（MIT OCW 课程笔记）
+    - [课程总览与讲次目录](mit6776-high-speed-communication-circuits/index.md) — Lee 与 Perrott 2005 年春季学期 21 讲讲义的中文笔记：收发机架构、S 参数与 Smith 圆图、宽带/窄带放大器、噪声与 LNA、VCO 与相位噪声、混频器、功放、小数分频频率合成器
+    - [第 1 讲 通信系统概览](mit6776-high-speed-communication-circuits/lec01-communication-systems.md)
+    - [第 2 讲 收发机架构](mit6776-high-speed-communication-circuits/lec02-transceiver-architectures.md)
+    - [第 3 讲 波导与传输线](mit6776-high-speed-communication-circuits/lec03-transmission-lines.md)
+    - [第 4 讲 S 参数与阻抗变换器](mit6776-high-speed-communication-circuits/lec04-sparameters-impedance-transformers.md)
+    - [第 5 讲 广义反射系数与 Smith 圆图](mit6776-high-speed-communication-circuits/lec05-smith-chart.md)
+    - [第 6 讲 MOS 管、无源器件与宽带放大器的增益带宽问题](mit6776-high-speed-communication-circuits/lec06-mos-passives-gbw.md)
+    - [第 7 讲 高频宽带放大器](mit6776-high-speed-communication-circuits/lec07-broadband-amplifiers.md)
+    - [第 8 讲 宽带放大器（续）](mit6776-high-speed-communication-circuits/lec08-broadband-amplifiers-cont.md)
+    - [第 9 讲 宽带放大器的增强技术与窄带放大器](mit6776-high-speed-communication-circuits/lec09-enhancement-narrowband.md)
+    - [第 10 讲 放大器中的噪声建模](mit6776-high-speed-communication-circuits/lec10-noise-modeling.md)
+    - [第 11 讲 噪声系数与放大器非线性的影响](mit6776-high-speed-communication-circuits/lec11-noise-figure-nonlinearity.md)
+    - [第 12 讲 低噪声放大器（LNA）](mit6776-high-speed-communication-circuits/lec12-lna.md)
+    - [第 13 讲 LNA 设计实例与新技术](mit6776-high-speed-communication-circuits/lec13-lna-examples.md)
+    - [第 14 讲 压控振荡器（VCO）](mit6776-high-speed-communication-circuits/lec14-vco.md)
+    - [第 15 讲 VCO 实例与混频器](mit6776-high-speed-communication-circuits/lec15-vco-examples-mixers.md)
+    - [第 16 讲 混频器（续）](mit6776-high-speed-communication-circuits/lec16-mixers.md)
+    - [第 17 讲 VCO 中的噪声](mit6776-high-speed-communication-circuits/lec17-vco-noise.md)
+    - [第 18 讲 功率放大器基础（ABC's of Power Amplifiers）](mit6776-high-speed-communication-circuits/lec18-power-amplifiers.md)
+    - [第 21 讲 锁相环与整数分频频率合成器概览](mit6776-high-speed-communication-circuits/lec21-pll-integer-n.md)
+    - [第 22 讲 整数与小数分频频率合成器的噪声](mit6776-high-speed-communication-circuits/lec22-synthesizer-noise.md)
+    - [第 23 讲 小数分频频率合成器的设计与带宽扩展](mit6776-high-speed-communication-circuits/lec23-fractional-n-design.md)
 
 ### 操作系统 / Operating System
 - [Linux 内核的构成（入门版）](linux-kernel/linux-kernel-architecture.md) — 用户态与内核态、系统调用、五大子系统（调度/内存/VFS/网络/驱动）、宏内核与模块、源码目录与学习路线
