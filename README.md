@@ -25,7 +25,7 @@ For recording useful knowledge about LLMs and computers.
     - [第 15 讲 片上电源分配](ee273-digital-systems-engineering/lec15-on-chip-power.md)
     - [第 16 讲 总结与课程项目讲评](ee273-digital-systems-engineering/lec16-wrap-up.md)
 - ECEN 720 高速链路电路与系统（Texas A&M 课程笔记）
-- [课程总览与讲次目录](ecen720-high-speed-links/index.md) — Palermo 2025 年春季学期 16 讲讲义的中文笔记：信道、调制、均衡、收发电路、时钟、Chiplet 互联与光收发器
+    - [课程总览与讲次目录](ecen720-high-speed-links/index.md) — Palermo 2025 年春季学期 16 讲讲义的中文笔记：信道、调制、均衡、收发电路、时钟、Chiplet 互联与光收发器
     - [第 1 讲 课程介绍](ecen720-high-speed-links/lec01-introduction.md)
     - [第 2 讲 信道元件、导线与传输线](ecen720-high-speed-links/lec02-channels.md)
     - [第 3 讲 时域反射与 S 参数信道模型](ecen720-high-speed-links/lec03-tdr-sparameters.md)

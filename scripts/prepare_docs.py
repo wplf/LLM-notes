@@ -52,6 +52,12 @@ for line in readme.splitlines():
 
 others = [str(p.relative_to(docs)) for p in sorted(docs.rglob("*.md"))
           if p.name != "index.md" and str(p.relative_to(docs)) not in listed]
+
+# 子目录下没有任何条目，多半是 README 里子条目忘了缩进，直接报错
+empty = [name for grp in nav[1:] for items in grp.values() for it in items
+         for name, val in it.items() if isinstance(val, list) and not val]
+if empty:
+    raise SystemExit("README 子目录为空（检查子条目是否缩进 4 个空格）：" + "、".join(empty))
 if others:
     nav.append({"其他": others})
 
