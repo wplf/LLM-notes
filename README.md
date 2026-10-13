@@ -42,6 +42,22 @@ For recording useful knowledge about LLMs and computers.
     - [第 14 讲 时钟分配技术](ecen720-high-speed-links/lec14-clock-distribution.md)
     - [第 15 讲 裸片间（Die-to-Die）收发器](ecen720-high-speed-links/lec15-die-to-die.md)
     - [第 16 讲 光收发器](ecen720-high-speed-links/lec16-optical-transceivers.md)
+- ECEN 689 光互连电路与系统（Texas A&M 课程笔记）
+    - [课程总览与讲次目录](ecen689-optical-interconnects/index.md) — Palermo 2022 年春季学期 14 讲讲义的中文笔记：光纤信道、光电探测器、接收机分析、TIA/LA、VCSEL/MZM/EAM/环形调制器发送机、激光源
+    - [第 1 讲 课程介绍](ecen689-optical-interconnects/lec01-introduction.md)
+    - [第 2 讲 光信道](ecen689-optical-interconnects/lec02-optical-channels.md)
+    - [第 3 讲 光电探测器](ecen689-optical-interconnects/lec03-photodetectors.md)
+    - [第 4 讲 光接收机分析](ecen689-optical-interconnects/lec04-rx-analysis.md)
+    - [第 5 讲 跨阻放大器（TIA）](ecen689-optical-interconnects/lec05-tias.md)
+    - [第 6 讲 限幅放大器（LA）](ecen689-optical-interconnects/lec06-limiting-amplifiers.md)
+    - [第 7 讲 光发送机分析](ecen689-optical-interconnects/lec07-tx-analysis.md)
+    - [第 8 讲 VCSEL 发送机](ecen689-optical-interconnects/lec08-vcsel-tx.md)
+    - [第 9 讲 马赫-曾德尔调制器（MZM）发送机](ecen689-optical-interconnects/lec09-mzm-tx.md)
+    - [第 10 讲 电吸收调制器（EAM）发送机](ecen689-optical-interconnects/lec10-eam-tx.md)
+    - [第 11 讲 环形谐振调制器（RRM）发送机](ecen689-optical-interconnects/lec11-rrm-tx.md)
+    - [第 12 讲 激光源](ecen689-optical-interconnects/lec12-laser-sources.md)
+    - [第 13 讲 基于监测的微波光子自动调谐系统](ecen689-optical-interconnects/lec13-microwave-photonics.md)
+    - [第 14 讲 带线性化的模拟 MZM 驱动器](ecen689-optical-interconnects/lec14-linear-mzm-driver.md)
 
 ### 操作系统 / Operating System
 - [Linux 内核的构成（入门版）](linux-kernel/linux-kernel-architecture.md) — 用户态与内核态、系统调用、五大子系统（调度/内存/VFS/网络/驱动）、宏内核与模块、源码目录与学习路线
