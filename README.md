@@ -27,6 +27,21 @@ For recording useful knowledge about LLMs and computers.
 
 ### 操作系统 / Operating System
 - [Linux 内核的构成（入门版）](linux-kernel/linux-kernel-architecture.md) — 用户态与内核态、系统调用、五大子系统（调度/内存/VFS/网络/驱动）、宏内核与模块、源码目录与学习路线
+- Linux 内核整体设计与子系统详解
+    - [总览：整体设计思想与系列目录](linux-kernel/index.md) — 分层结构、宏内核与模块、ops 表 + container_of、机制与策略分离、执行上下文、各子系统如何协作
+    - [第 1 篇 启动与初始化](linux-kernel/01-boot-and-init.md)
+    - [第 2 篇 系统调用与内核入口](linux-kernel/02-syscall-and-entry.md)
+    - [第 3 篇 进程管理与调度](linux-kernel/03-process-and-scheduling.md)
+    - [第 4 篇 内存管理](linux-kernel/04-memory-management.md)
+    - [第 5 篇 中断、延迟工作与时间](linux-kernel/05-interrupts-and-time.md)
+    - [第 6 篇 并发与同步](linux-kernel/06-synchronization.md)
+    - [第 7 篇 VFS 与文件系统](linux-kernel/07-vfs-and-filesystems.md)
+    - [第 8 篇 块设备层与 I/O](linux-kernel/08-block-layer-and-io.md)
+    - [第 9 篇 网络协议栈](linux-kernel/09-networking-stack.md)
+    - [第 10 篇 设备驱动模型](linux-kernel/10-device-driver-model.md)
+    - [第 11 篇 进程间通信与信号](linux-kernel/11-ipc-and-signals.md)
+    - [第 12 篇 安全、命名空间与 cgroup](linux-kernel/12-security-and-containers.md)
+    - [第 13 篇 观测与调试](linux-kernel/13-tracing-and-debugging.md)
 
 ### 金融 / Finance
 - [量化交易核心概念入门教程](quant-trading/quant-trading-basics.md) — 量化流程、数据偏差、Alpha/Beta、因子与 IC、常见策略、回测陷阱、绩效指标、组合风控与执行，附双均线示例代码
