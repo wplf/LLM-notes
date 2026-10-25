@@ -2,7 +2,7 @@
 
 > 目标：沿着“按下电源 → 内核运行 → 找到系统盘 → 启动服务 → 出现登录界面”这条线，理解每一步由谁完成，以及为什么需要下一步。
 >
-> 本文以 **x86-64 电脑、UEFI 固件、使用 initramfs 的常见 Linux 发行版**为主要背景；涉及源码时固定参考 **Linux v6.12**。不同机器可以省略或替换部分环节，函数名也可能随版本变化。
+> 本文以 **x86-64 电脑、UEFI 固件、使用 initramfs 的常见 Linux 发行版**为主要背景；第 2 节会对照传统 BIOS 的启动过程与历史，解释 UEFI 的由来。涉及 Linux 源码时固定参考 **v6.12**。不同机器可以省略或替换部分环节，函数名也可能随版本变化。
 
 如果你刚开始学习，不需要先记住 `startup_64`、`boot_params` 这些名字。先带着三个问题往下读：**现在 CPU 在执行谁的代码？这段代码已经具备什么能力？它还要准备什么，才能运行下一段代码？**
 
@@ -38,30 +38,216 @@ flowchart TD
 
 这里说“把控制权交给下一阶段”，主要指 **CPU 开始执行下一阶段的代码**。这不总是创建新进程：在内核建立进程管理之前，还不能用平时的进程模型描述所有步骤。
 
+<a id="bios-boot-and-history"></a>
+
 ## 2. 第一棒：没有操作系统时，固件怎么先跑起来？
 
-### 2.1 最初运行的是固件
+### 2.1 BIOS 是什么，它和设置界面有什么关系？
 
-CPU 复位后，会从硬件规定的入口开始执行代码。平台把固件安排在这个启动路径上，所以它不需要先有 Linux 才能运行。
+BIOS 解决的第一个问题是：**操作系统还没有运行，谁先把硬件准备好，再把操作系统启动起来？**
 
-固件可以先理解为保存在主板非易失性存储器中的一套基础软件。它负责完成启动所需的硬件初始化，例如让内存可用、发现必要的设备，并选择下一步要加载的程序。屏幕上看到的主板标志和固件设置界面，往往属于这个阶段。
+BIOS 全称是 **Basic Input/Output System，基本输入输出系统**。在传统 PC 中，它是一套保存在主板非易失性存储器中的固件，由 CPU 执行。这里的“非易失性”表示断电后仍能保存内容。
 
-固件只需要把机器带到足以继续引导的状态，操作系统随后还会接管并进一步配置设备。
+历史上，BIOS 承担两类工作：
 
-### 2.2 UEFI 和 BIOS 是两类引导环境
+- **启动机器**：初始化硬件、检查基本状态、寻找启动设备并执行引导代码。
+- **提供基本硬件服务**：让早期操作系统通过统一接口读磁盘、操作显示器、读取键盘。
 
-传统 BIOS 常从启动磁盘上的引导扇区代码开始执行，再由后续引导代码逐步加载系统。UEFI 提供了更完整的加载环境，可以按照启动配置加载 EFI 可执行程序；常见启动文件存放在 **EFI System Partition（ESP，EFI 系统分区）**中。
+传统机器上的固件常存放在 ROM 等器件中，后来广泛使用可更新的 Flash。今天日常所说的“进入 BIOS”，经常指进入 **UEFI 固件的设置界面**；因此，讨论启动原理时要分清传统 BIOS 与 UEFI。
 
-在一台使用 GRUB 的 UEFI 电脑上，可以先把这一段理解成：
+| 概念 | 实际含义 |
+|---|---|
+| BIOS/UEFI 固件 | 执行初始化和引导工作的代码 |
+| BIOS Setup | 查看和修改固件配置的界面 |
+| CMOS/NVRAM 配置 | 启动顺序、硬件选项等保存下来的设置；具体存储方式随平台变化 |
+| 更新或“刷写”固件 | 更新固件存储器里的程序，与恢复默认设置不同 |
 
-```text
-UEFI 固件
-  → 选择启动项
-  → 加载该启动项指定的 EFI 引导程序
-  → 引导程序继续准备 Linux
+传统 PC 常用电池维持 RTC 时钟和 CMOS 配置。电池没电可能造成时间或配置丢失，但这不等于固件程序被擦除了；现代机器的部分配置还可能保存在不依赖电池的非易失性存储中。[Dell 的 CMOS 配置说明](https://www.dell.com/support/kbdoc/en-us/000135183/how-to-replace-a-cmos-coin-cell-battery-on-your-dell-desktop-computer)、[Dell 的固件与配置存储说明](https://downloads.dell.com/manuals/all-products/esuprt_ser_stor_net/esuprt_poweredge/poweredge-r815_white%20papers10_en-us.pdf)
+
+### 2.2 一次传统 BIOS 启动：从复位到引导程序
+
+下面沿着一次**传统 BIOS 的硬盘启动**走一遍。它展示逻辑上的主要阶段；真实固件中，检查、初始化和配置读取可能交错进行。内存、CPU 和设备的基础准备，在 UEFI 启动中同样需要，只是具体组织与交接接口不同。
+
+```mermaid
+flowchart TD
+    A["电源与时钟稳定，CPU 复位"] --> B["CPU 从规定入口执行固件"]
+    B --> C["准备 CPU 和内存环境"]
+    C --> D["硬件检查与设备初始化"]
+    D --> E["建立基本 I/O 服务，选择启动设备"]
+    E --> F["读取磁盘引导扇区并执行"]
+    F --> G["引导程序加载操作系统内核"]
+    G --> H["内核接管资源与设备"]
 ```
 
-UEFI、GRUB 和 Linux 是不同的软件。选择 Linux 启动项时，固件不会因此自动拥有 Linux 的全部文件系统、驱动和调度功能。EFI stub 则是内核中用于适配 EFI 加载方式的一小段代码，使内核镜像能够作为 EFI 程序被加载。[EFI stub 的职责](https://docs.kernel.org/6.12/admin-guide/efi-stub.html)
+#### 第一步：CPU 为什么知道第一条指令在哪里？
+
+平时运行程序，是操作系统安排 CPU 去执行它。刚上电时没有操作系统，所以必须由**硬件规定一个最初的执行入口**，称为复位向量。
+
+以 Intel 文档描述的典型 x86 复位行为为例，第一条指令位于物理地址 `0xFFFFFFF0`。平台把这个地址对应到固件存储区域，CPU 便能从那里取指令，再转向更完整的初始化代码。这个地址是 CPU 看到的物理地址，不是磁盘上的文件位置。[Intel 软件开发者手册：First Instruction Executed](https://cdrdv2-public.intel.com/868137/325462-089-sdm-vol-1-2abcd-3abcd-4.pdf)
+
+这里最关键的理解是：**CPU 可以直接执行固件中的机器指令，不需要先加载 Linux 或 Windows。** 操作系统本身，也是后面才运行起来的一组程序。
+
+#### 第二步：先让内存可用，才能运行更复杂的代码
+
+“内存条插好了”和“CPU 已经可以可靠地读写它”之间，还有一段初始化工作。
+
+固件中的平台初始化代码需要配置内存控制器，让它能够正确访问相应的内存。在现代内存系统里，还可能需要训练读写时序。完成这些准备后，才有足够的正常内存空间支持更复杂的初始化。
+
+于是出现一个问题：**初始化内存的代码，自己用什么内存？**
+
+最早期代码可以利用寄存器保存少量状态，并从固件存储器取指令。一些平台还会临时把 CPU 缓存用作可读写空间，即 **Cache-as-RAM（CAR）**，为栈和临时数据提供存储。等 DRAM 初始化完成，再转到正常内存环境。并非每个平台都采用 CAR，但它很好地说明了“内存还没准备好时怎样先运行一段代码”。[coreboot 的启动阶段与 CAR 说明](https://doc.coreboot.org/getting_started/architecture.html)
+
+```text
+能执行少量早期指令
+    → 有临时数据空间
+    → 可以可靠访问 DRAM
+    → 可以运行更复杂的固件代码
+```
+
+#### 第三步：执行 POST，并让必要的设备可用
+
+POST 是 **Power-On Self-Test，上电自检**。它检查系统是否具备继续启动的基本条件，并与硬件初始化配合进行。
+
+根据年代和平台不同，这里可能涉及 CPU、内存、显示设备、键盘控制器、存储控制器及扩展设备等。POST 通过，表示基本启动检查通过，并不等于对所有硬件做过完整的长时间测试。
+
+这也解释了为什么有些故障只有蜂鸣声或主板诊断码：出错时，显示路径可能还没准备好，固件无法在屏幕上打印错误。
+
+传统 PC 还存在 **Option ROM，扩展 ROM**。例如，某块存储控制卡带有自己的初始化代码，主板 BIOS 可以执行它，使这块卡上的磁盘也能够参与启动。主板 BIOS 因而能借助扩展卡提供的代码支持更多设备。[IBM PC/AT 技术参考手册：System BIOS](https://bitsavers.trailing-edge.com/pdf/ibm/pc/at/1502494_PC_AT_Technical_Reference_Mar84.pdf)
+
+#### 第四步：建立基本 I/O 服务
+
+BIOS 名字中的“输入输出系统”，在这个阶段就体现出来了。传统 BIOS 提供一些约定好的调用入口，例如：
+
+| 接口 | 典型用途 |
+|---|---|
+| `INT 10h` | 基本显示服务 |
+| `INT 13h` | 磁盘读写服务 |
+| `INT 16h` | 键盘服务 |
+
+这里的 `INT` 是程序主动执行的软件中断指令，用于进入对应处理代码；与设备异步通知 CPU 的硬件中断，触发方式不同。
+
+例如，引导程序可以通过 BIOS 磁盘接口提出“把某个扇区读到指定内存位置”的请求，而不用先实现完整的磁盘控制器驱动。IBM 当年的 BIOS 设计就强调，通过这些接口屏蔽具体设备差异。[IBM BIOS 接口说明](https://bitsavers.trailing-edge.com/pdf/ibm/pc/at/1502494_PC_AT_Technical_Reference_Mar84.pdf)
+
+此时提供的主要是**基本设备访问能力**。能读取磁盘扇区，与能够理解 ext4、找到 `/boot/vmlinuz`，仍然是不同层次的能力。
+
+#### 第五步：选择启动设备，读取第一小段引导代码
+
+BIOS 根据配置的启动顺序，尝试硬盘、光盘、网络等设备。不同设备有不同的启动约定，这里只看经典硬盘启动。
+
+在这种路径中，BIOS 通常读取磁盘第一个扇区，把其中的引导代码放到内存地址 `0x7C00`，检查相应启动标志，然后跳过去执行。开源 SeaBIOS 的 `boot_disk()` 就能直接看到“读一个扇区、检查标志、跳转执行”的过程。[SeaBIOS 启动实现](https://github.com/coreboot/seabios/blob/master/src/boot.c)
+
+对经典 MBR 分区磁盘，这个扇区包含 **MBR（Master Boot Record，主引导记录）**。传统的 512 字节空间还要容纳分区表等信息，所以其中的代码很小，承担的是继续加载后续代码的任务。
+
+这里发生了一个明确的交接：**跳转之前，CPU 执行 BIOS 的代码；跳转之后，CPU 开始执行刚从磁盘读来的引导代码。**
+
+BIOS 可以继续向这段代码提供磁盘等服务，但启动流程已经由下一段代码推进。
+
+#### 第六步：更完整的引导程序继续加载内核
+
+不同引导器采用的接力方式不同。例如，经典 DOS/Windows 路径可能从 MBR 代码继续进入活动分区的引导代码；GRUB 则可以通过小段启动代码加载更完整的核心，再读取配置、文件系统和内核。[Windows 的启动阶段](https://learn.microsoft.com/en-us/troubleshoot/windows-client/performance/windows-boot-issues-troubleshooting)、[GRUB 的 BIOS 安装布局](https://www.gnu.org/software/grub/manual/grub/html_node/BIOS-installation.html)
+
+对传统 BIOS 启动的 Linux，可以先理解为：
+
+```text
+BIOS
+  → 磁盘上的早期引导代码
+  → 更完整的 GRUB
+  → Linux 内核镜像、initramfs、启动参数
+  → 内核入口
+```
+
+这解释了为什么 BIOS 能识别硬盘，系统仍可能启动失败：识别设备、读取引导代码、找到内核、成功执行内核，是不同阶段。
+
+Linux 运行起来后，日常磁盘和网络 I/O 主要由自己的驱动和子系统处理。它仍会利用固件提供的平台信息，但一般不会让每一次文件读取都经过传统 BIOS 磁盘接口。
+
+### 2.3 BIOS 的发展历史：从硬件适配层到 PC 兼容性基础
+
+这套设计的历史，可以沿着“它当时解决了什么问题”来看。
+
+| 时期 | 发生了什么 | 为什么重要 |
+|---|---|---|
+| **1970 年代中期：CP/M** | Gary Kildall 的 CP/M 将硬件相关部分分离为 BIOS；1976 年的 CP/M 1.3 已把 BIOS 与 BDOS 分开编译 | 换机器时，可以集中修改硬件适配部分，使操作系统主体更容易移植 |
+| **1981 年：IBM PC** | ROM BIOS 成为机器架构的重要组成部分，提供启动代码和基本 I/O 接口 | 软件开始围绕广泛使用的 PC 硬件与固件行为建立兼容性 |
+| **1980 年代：兼容机兴起** | Compaq 等公司实现兼容的 BIOS 行为，独立 BIOS 供应商也逐渐形成产业 | 不同厂商的机器能够运行既有 PC 软件，兼容性成为共同目标 |
+| **1980～1990 年代：持续扩展** | BIOS 适应更复杂的总线、存储和设备，固件存储逐渐转向可更新的 Flash | 增加新功能的同时，还要保留旧软件和启动方式的兼容性 |
+| **1990 年代中后期：EFI 起步** | Intel、HP 等为 Itanium 等平台探索新的固件接口 | 克服传统 PC-AT 启动环境的部分限制，支持更现代、可扩展的平台 |
+| **2005～2006 年：UEFI 标准化** | 2005 年成立 UEFI Forum；2006 年发布 UEFI 2.0，接替 Intel EFI 1.10 | 固件与操作系统之间的接口由更广泛的行业组织共同维护 |
+| **2010 年代：UEFI 广泛进入 PC** | 原生 UEFI 启动逐渐普及，部分固件通过 CSM 保留旧式启动兼容能力 | 新旧启动体系长期并存，“BIOS”一词在日常使用中仍被沿用 |
+
+**BIOS 这个概念早于 IBM PC，最初强调的是隔离硬件差异。** CP/M 可以把“读磁盘、读键盘等操作怎样落到这台机器的硬件上”集中到 BIOS 中，而让上层操作系统与应用尽量保持一致。当时 CP/M 中的 BIOS，不能直接等同于后来 PC 主板上的整套 ROM 固件。[CP/M 原始资料与版本说明](https://computerhistory.org/blog/early-digital-research-cpm-source-code/)、[IBM PC 历史](https://www.ibm.com/history/personal-computer)
+
+到了兼容机时代，BIOS 又成了兼容性的关键。仅使用同一种 CPU，并不能保证旧软件正常运行；BIOS 接口的返回值、设备行为和许多细节也需要兼容。Compaq 创始人 Rod Canion 回忆，他们先详细研究和描述这些行为，再通过独立实现达到兼容目标。这就是那段历史里常提到的 **clean-room，净室实现**：研究原实现的行为并形成规格，再由隔离于原代码的实现团队按规格编写代码。[Canion 访谈记录](https://www.pbs.org/nerds/part2.html?mobile-app=true&theme=wiki)
+
+兼容性的成功也带来了长期负担：越多的软件依赖既有行为，就越难彻底改变接口。传统 BIOS 的实模式兼容接口、有限的早期执行环境，以及不断叠加的设备和启动约定，使后来的扩展越来越复杂。这里说的是对外的传统兼容接口，不意味着所有 BIOS 内部代码都只能以 16 位方式执行。
+
+EFI 的早期动机之一，就是为新平台建立更适合的启动架构。UEFI Forum 的历史回顾把这条线追溯到 1990 年代的 Intel/HP Itanium 工作；2005 年论坛成立，随后发布的 UEFI 2.0 接替了 Intel EFI 1.10。[UEFI 历史回顾](https://uefi.org/sites/default/files/resources/S4_BldgARMServers_UEFILinuxCon_FINAL_Aug.%2021.pdf)、[2005 年成立公告](https://uefi.org/press-release/UEFI_Forum_to_Manage_Key_Firmware_to_Operating_System_Specification_July_25_2005)、[2006 年规范发布公告](https://uefi.org/press-release/UEFI_Releases_Updated_and_Open_Spec_February_21_2006)
+
+### 2.4 UEFI 重新设计了哪些接口？
+
+UEFI 的关键变化，是把**固件提供的服务、驱动模型和操作系统加载方式**重新规范化。它是一套接口规范，具体固件由不同厂商或项目实现。
+
+| 对比点 | 传统 BIOS 的常见方式 | UEFI 的常见方式 |
+|---|---|---|
+| 如何启动下一段程序 | 读取并执行磁盘引导扇区中的代码 | 根据启动项加载 EFI 可执行文件 |
+| 引导器如何获得服务 | 传统 BIOS 中断接口 | 结构化服务表、协议与函数接口 |
+| 启动文件通常在哪里 | 引导扇区及引导器安排的后续位置 | EFI 系统分区中的 `.efi` 文件 |
+| 固件如何扩展设备支持 | 传统 BIOS 代码和 Option ROM 等 | 规范化的驱动与协议模型 |
+| 操作系统怎样接管 | 按传统启动约定逐步接管 | 通过明确的 Boot Services 退出边界完成交接 |
+
+**EFI System Partition（ESP，EFI 系统分区）**用于保存相应的 EFI 启动程序等文件。在使用 GRUB 的常见 UEFI 电脑上，这一段可以理解为：
+
+```text
+UEFI 固件选择启动项
+  → 加载 ESP 中的 EFI 引导程序
+  → 引导程序准备 Linux 内核、initramfs 等
+  → 在适当时机退出固件启动服务
+  → Linux 接管后续运行
+```
+
+UEFI 提供两类需要区分的服务：
+
+- **Boot Services（启动服务）**：在引导阶段支持内存分配、程序加载、设备访问等工作。操作系统加载器准备好接管后，通过 `ExitBootServices()` 结束这类服务。
+- **Runtime Services（运行时服务）**：其中受支持的服务在交接后仍可按规定调用，例如固件变量访问、时间或复位相关服务。
+
+因此，UEFI 给出了更明确的资源交接边界；退出启动服务后，操作系统不能继续把这些启动服务当作日常设备驱动使用。[UEFI Boot Services](https://uefi.org/specs/UEFI/2.10/07_Services_Boot_Services.html?highlight=exitbootservice)、[UEFI Runtime Services](https://uefi.org/specs/UEFI/2.9_A/08_Services_Runtime_Services.html?highlight=efiresetshutdown)
+
+部分 UEFI 固件提供 **CSM（Compatibility Support Module，兼容性支持模块）**，用于支持传统 BIOS 风格的启动。是否提供 CSM、实际使用哪条启动路径，取决于具体固件与所选启动项。UEFI、GRUB 和 Linux 仍是不同的软件，承担不同的工作。[微软的固件启动模式说明](https://learn.microsoft.com/en-us/windows-hardware/drivers/bringup/switch-from-legacy-mbr-disk-to-gpt-disk-with-windows-10)
+
+也并非一定要经过一个独立的 GRUB：内核中的 **EFI stub** 可以让内核镜像作为 EFI 程序被加载，承担相应的引导适配工作。[EFI stub 的职责](https://docs.kernel.org/6.12/admin-guide/efi-stub.html)
+
+### 2.5 BIOS/UEFI 与 MBR/GPT 是两个维度
+
+这两组术语经常一起出现，但描述的对象不同：
+
+| 概念 | 讨论什么 |
+|---|---|
+| BIOS、UEFI | 固件及其启动接口 |
+| MBR、GPT | 磁盘分区的描述方式 |
+
+常见组合是“传统 BIOS + MBR”和“UEFI + GPT”，但它们并非概念上绑定。例如，GRUB 配合 Linux 可以在 BIOS 启动的机器上使用 GPT 磁盘，并利用专用的 BIOS Boot Partition 存放相应引导代码。[GRUB 对 BIOS 与 GPT 的说明](https://www.gnu.org/software/grub/manual/grub/html_node/BIOS-installation.html)
+
+常说的“2 TB 限制”也要看具体来源。在采用 512 字节逻辑扇区的典型 MBR 情况下，32 位扇区字段对应的量级是：
+
+```text
+2^32 × 512 字节 = 2^41 字节 = 2 TiB ≈ 2.2 TB
+```
+
+这是分区格式和寻址方式带来的典型限制，不能简单归因于“BIOS 不认识大硬盘”。实际可用和可启动范围还受到固件、引导器及操作系统实现的影响。[UEFI Forum 的分区容量说明](https://uefi.org/sites/default/files/resources/UEFI_Drive_Partition_Limits_Fact_Sheet.pdf)
+
+### 2.6 看现代固件源码时，SEC、PEI、DXE、BDS 是什么？
+
+许多采用 **PI（Platform Initialization，平台初始化）架构**的 UEFI 固件，会把内部启动工作划分为以下阶段：
+
+| 阶段 | 初次阅读时可以怎样理解 |
+|---|---|
+| SEC | 最早期执行与基础环境准备 |
+| PEI | 早期平台初始化，尤其是让内存等基础资源可用 |
+| DXE | 建立更完整的驱动、设备和固件服务环境 |
+| BDS | 依据启动策略选择并启动后续程序 |
+
+这些名称描述的是**固件内部怎样完成启动准备**，具体平台可以有不同的实现组织；它们不是所有启动方式都必须逐项照搬的固定函数名。后面将看到的 `start_kernel()` 则属于已经开始运行的 Linux 内核代码。[UEFI PI 规范](https://uefi.org/sites/default/files/resources/UEFI_PI_Spec_Final_Draft_1.9.pdf)
+
+理解了固件如何提供最初的环境，下一步就可以看引导程序到底向内核交付哪些材料。
 
 ## 3. 第二棒：引导程序把什么交给内核？
 
@@ -365,12 +551,14 @@ systemd-analyze critical-chain
 
 源码入口：[Linux v6.12](https://github.com/torvalds/linux/tree/v6.12)、[init/main.c](https://github.com/torvalds/linux/blob/v6.12/init/main.c)。阅读同一版本有助于避免把不同年代的函数名和入口拼成一条不存在的调用链。
 
-## 10. 用五个问题检查是否理解
+## 10. 用七个问题检查是否理解
 
 1. **还没有 Linux 时，谁先运行？** 固件及后续引导代码。硬件提供最初的执行入口，它们先准备加载内核所需的条件。
 2. **到了 `start_kernel()`，内核才第一次开始运行吗？** 内核早期代码已经运行了一段时间；这里进入的是通用初始化的重要阶段。
 3. **真正的根还没有挂载，怎么能先运行 `/init`？** 内核已把早期工具展开到内存中的初始根环境，PID 1 可以从那里执行用户程序。
 4. **从 initramfs 切到正式系统，会再启动一个内核吗？** 通常仍是同一个内核，变化的是根目录环境，以及 PID 1 所执行的用户程序。
 5. **为什么内核启动成功，仍可能没有登录界面？** 登录还依赖用户空间的服务、配置和设备；它们需要由 init 系统继续组织起来。
+6. **恢复 BIOS 默认设置，就是重写 BIOS 程序吗？** 恢复默认设置改变的是配置；更新固件才会改写相应的固件程序。
+7. **使用 GPT，就一定是通过 UEFI 启动的吗？** 不一定。GPT 是分区格式；例如 GRUB 配合 Linux 也可以采用 BIOS + GPT 的启动组合。
 
 接下来读[第 2 篇：系统调用与内核入口](02-syscall-and-entry.md)，就会进入“系统已经启动后，用户程序如何反复请求内核服务”的阶段。
