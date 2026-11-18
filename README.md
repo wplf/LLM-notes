@@ -126,3 +126,4 @@ For recording useful knowledge about LLMs and computers.
 
 ### 分布式训练 / Distributed Training
 - [分层分片数据并行（HSDP）的设计原理](hsdp/hsdp-design-principles.md) — 相对 FSDP2 省掉哪些拷贝、三级 ZeRO 分片、两段梯度归约、对称内存通信、梯度直写，以及显存统计、空分组脏数据、FP64 热路径等坑
+- [NCCL 与 RDMA 学习记录](nccl/nccl-rdma-notes.md) — 基于 NCCL v2.32.6 源码的问答：NCCL 能力与 API、RDMA/Verbs/Fabric 概念、GDR / GDRCopy / GDAKI / Data Direct 的关系与性能对比、跨节点与节点内的实际通信路径
